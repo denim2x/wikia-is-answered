@@ -41,7 +41,7 @@ async def knowledge(scope, info, matches, content):
   for name, path in kb_dict.items():
     docs = []
     for doc in dialogflow.documents(path):
-      docs.append({ 'caption': doc.display_name, 'url': url_db[doc.name] or None })
+      docs.append({ 'caption': doc.display_name, 'url': url_db.get(doc.name, b'').decode() or None })
     res.append({ 'caption': name, 'documents': sorted(docs, key=lambda e: e['caption']) })
   return json_response(sorted(res, key=lambda e: e['caption']))
 
@@ -70,7 +70,6 @@ async def respond(scope, info, matches, content):
       if doc is None:
         print('[WARN] URL request failed:', e['url'])
         continue
-      #if e['domain'] not in db:
       if doc.site not in kb_dict:
         print('[WARN] Missing knowledge base:', doc.site)
         continue

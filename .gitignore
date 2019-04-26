@@ -10,3 +10,4 @@ package-lock.json
 /static/*browserify*
 /~*
 /logs
+/account.json

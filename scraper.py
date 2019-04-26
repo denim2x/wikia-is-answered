@@ -54,7 +54,7 @@ def parse(**kw):
   kw = { key: make_url(val) if key is 'url' else val }
   try:
     doc = pq(**kw)
-    doc.title, doc.site, _ = (e.strip() for e in doc.children('head > title').text().split('|', 2))
+    doc.title, doc.site = (e.strip() for e in doc.children('head > title').text().split('|', 2))[:2]
     return doc
   except HTTPError:
     pass
