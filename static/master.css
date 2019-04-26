@@ -1,0 +1,245 @@
+@import url('https://fonts.googleapis.com/css?family=Nunito');
+
+html {
+  padding: 0;
+  overflow: hidden;
+}
+
+body {
+  padding: 0;
+  position: relative;
+  margin: 0;
+}
+
+body, textarea {
+  font-family: 'Nunito', sans-serif;
+}
+
+textarea:focus {
+  outline: none;
+}
+
+button {
+  cursor: pointer;
+}
+
+.u-checkbox {
+  background: hsl(0deg, 0%, 68%);
+  --check: 0;
+  border-radius: 3px;
+  width: var(--size);
+  height: var(--size);
+  display: inline-block;
+  vertical-align: -5px;
+  -webkit-appearance: none;
+  position: relative;
+  --size: 16px;
+  cursor: pointer;
+  outline: none;
+  margin-right: 5px;
+}
+
+.u-checkbox:checked {
+  --check: 0.8;
+}
+
+.u-checkbox:before {
+  content: '';
+  display: block;
+  position: absolute;
+  left: 0;
+  top: 0;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  background: no-repeat center/85% url(https://image.flaticon.com/icons/svg/128/128384.svg);
+  opacity: var(--check);
+  transition: 0.3s opacity;
+}
+
+.u-textbox {
+  background: transparent;
+  position: relative;
+
+  transition: 0.4s background-color;
+}
+
+.u-textbox:before {
+  content: attr(placeholder);
+  color: hsl(0deg, 0%, 67%);
+  font-style: italic;
+  opacity: 0;
+  position: absolute;
+
+  transition: 0.2s opacity;
+}
+
+.u-textbox.empty * {
+  display: none;
+}
+
+.u-textbox.empty:before {
+  opacity: 1;
+}
+
+.u-textbox.error {
+  background: hsl(0deg, 68%, 87%);
+}
+
+.Root {
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+.Root-body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: min-content auto;
+  background: hsl(0deg, 0%, 80%);
+}
+
+.Header {
+  width: 100%;
+  padding: 10px 10px;
+  box-sizing: border-box;
+  margin-top: 0;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  grid-row: 1;
+  grid-column: 1 / 2;
+}
+
+.Header-title {
+  font-size: 1.2em;
+  text-align: left;
+  margin-bottom: 0;
+  text-shadow: 2px 2px 2px #0003;
+  width: min-content;
+  white-space: nowrap;
+  color: hsl(0deg, 0%, 15%);
+  padding: 1px 14px;
+  border-radius: 6px 6px 0 0;
+  margin-top: 0;
+}
+
+.Knowledge {
+  width: 100%;
+  max-height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 0 12px;
+  box-sizing: border-box;
+  z-index: 2;
+  grid-row: 2;
+  grid-column: 1;
+  background: hsl(0deg, 0%, 84%);
+  color: hsl(0deg, 0%, 25%);
+}
+
+.Knowledge-caption {
+  font-size: 17px;
+  padding: 12px 12px 10px;
+  background: hsla(0deg, 0%, 84%, 80%);
+  position: sticky;
+  top: 0;
+  margin: 0;
+}
+
+.Knowledge-bases {
+  list-style: none;
+  margin: 0 0 0 15px;
+  padding: 0;
+}
+
+.Knowledge-base {
+  display: block;  
+  margin-bottom: 10px;
+}
+
+.Knowledge-baseCaption {
+  font-size: 15px;
+  margin: 0;
+}
+
+.Knowledge-documents {
+  list-style: none;
+  margin: 0 0 0 8px;
+  padding: 0;
+}
+
+.Knowledge-document {
+  display: block;
+}
+
+.Knowledge-documentCaption {
+  color: inherit;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.Knowledge-documentCaption:hover {
+  text-decoration: initial;
+}
+
+.Conversation {
+  grid-row: 2;
+  grid-column: 2;
+  display: flex;
+  flex-direction: column-reverse;
+  background: hsl(0deg, 0%, 90%);
+  position: relative;
+  overflow-x: hidden;
+  overflow-y: auto;  
+}
+
+.Conversation-body {
+  grid-row: 1;
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+}
+
+.Conversation-history {
+  padding: 15px;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  list-style: none;
+  box-sizing: border-box;
+}
+
+.Converstion-historyItem {
+  border-radius: 13px;
+  background: hsl(0deg, 0%, 80%);
+  padding: 10px;
+  max-width: 80%;
+  width: max-content;
+  align-self: flex-end;
+  margin-bottom: 10px;
+  font: inherit;
+  box-sizing: border-box;
+  white-space: pre-line;
+}
+
+.Converstion-historyItem.user {
+  align-self: initial;
+}
+
+.Conversation-input {
+  background: none;
+  border: none;
+  padding: 10px;
+  box-sizing: border-box;
+  min-height: 150px;
+  position: sticky;
+  bottom: 0;
+  background: hsla(0deg, 0%, 90%, 90%);
+  width: 100%;
+  outline: none;
+}

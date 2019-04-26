@@ -1,0 +1,12 @@
+node_modules
+__pycache__
+*.py[cod]
+~test
+.vscode
+/lib
+package-lock.json
+/appengine_config.py
+/config.yaml
+/static/*browserify*
+/~*
+/logs

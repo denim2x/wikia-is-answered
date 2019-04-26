@@ -1,0 +1,14 @@
+node_modules
+/app.js
+.gitignore
+.git
+.vscode
+__pycache__
+/logs
+package*.json
+/lib
+/appengine_config.py
+/static/*browserify*
+/~*
+/README*
+/LICENSE

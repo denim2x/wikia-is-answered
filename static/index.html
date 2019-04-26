@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>WikiA is Answered</title>
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="An engaging virtual assistant service for answering (almost) any question about some event or character from the Fandom/WikiA knowledge base">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="shortcut icon" href="https://static.wikia.nocookie.net/qube-assets/f2/3682/favicons/favicon.ico?v=f9ae4c4ce118c760f817d4b243af374e603444fe">
+  <link rel="icon" type="image/png" href="https://static.wikia.nocookie.net/qube-assets/f2/3682/favicons/favicon-16x16.png?v=f9ae4c4ce118c760f817d4b243af374e603444fe" sizes="16x16">
+  <link rel="icon" type="image/png" href="https://static.wikia.nocookie.net/qube-assets/f2/3682/favicons/favicon-32x32.png?v=f9ae4c4ce118c760f817d4b243af374e603444fe" sizes="32x32">
+  <link rel="apple-touch-icon" sizes="180x180" href="https://static.wikia.nocookie.net/qube-assets/f2/3682/favicons/apple-touch-icon.png?v=f9ae4c4ce118c760f817d4b243af374e603444fe">
+  <link rel="stylesheet" href="master.css" />
+</head>
+
+<body class="Root">
+  <div class="Root-body">
+    <header class="Header">
+      <h1 class="Header-title">WikiA is Answered</h1>
+    </header>
+
+    <aside class="Knowledge">
+      <h2 class="Knowledge-caption">Knowledge base</h2>
+      <ul class="Knowledge-bases">
+        <li class="Knowledge-base" rv-each-base="knowledge">
+          <h3 class="Knowledge-baseCaption">{ base.caption }</h3>
+          <ul class="Knowledge-documents">
+            <li class="Knowledge-document" rv-each-doc="base.documents">
+              <a target="_blank" rv-href="doc.url" class="Knowledge-documentCaption">{ doc.caption }</a>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </aside>
+
+    <main class="Conversation">
+      <div class="Conversation-body">
+        <div class="Conversation-history">
+          <pre class="Converstion-historyItem" rv-each-item="conversation" rv-class-user="item.is_user">{ item.text }</pre>
+        </div>
+        <div placeholder="Your message here..." class="u-textbox Conversation-input" autofocus contenteditable rv-input="message ? empty" rv-class-error="error"></div>
+      </div>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+
+</html>
