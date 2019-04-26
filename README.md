@@ -4,7 +4,7 @@ An engaging virtual assistant service for answering (almost) any question about 
 
 ## Architecture
 - designed for the [Google Cloud Platform](https://cloud.google.com/)
-- *Python* server ([*bareASGI*](https://bareasgi.readthedocs.io/en/latest/)), running on [*App Engine Flexible Environment*](https://cloud.google.com/appengine/docs/flexible/)
+- [Python *server*](https://bareasgi.readthedocs.io/en/latest/), running on [*App Engine Flexible Environment*](https://cloud.google.com/appengine/docs/flexible/)
 - *conversational agent* running on [*Dialogflow*](https://dialogflow.com/)
 - *Redis* database running on [*Cloud Memorystore*](https://cloud.google.com/memorystore/)
 - [*Custom Search* engine](https://www.google.com/cse/) for retrieving articles from [*Fandom*](https://www.fandom.com/)
@@ -19,11 +19,11 @@ An engaging virtual assistant service for answering (almost) any question about 
 ## Workflow
 - the user is greeted with an introductory *message* from the *Dialogflow* agent
 - the user may submit a message (usually a question) using the input area
-- the server sends the question to the *Dialogflow* agent, thus obtaining a list of potential *answers* (excluding the *knowledge base*)
-- if no relevant answers are found, the query is sent to the *Custom Search* engine and a list of articles is thus obtained
-- each article is checked for existence in the *Redis* database (by URL) and, if necessary, *scraped* and then stored (in *plain text*) in the *agent's* *knowledge base*
-- the input query is then sent once more to the agent and the *knowledge base* answers are retrieved and filtered such that all resulting answers's source URLs are also present in the search results
-- if the list of answers is non-empty, the most relevant answer is displayed on the *frontend* - otherwise the *fallback* message is displayed
+- the server sends the question to the *Dialogflow* agent and obtains the initial list *answers* (excluding the *knowledge base*)
+- if there are no relevant answers in the list, the query is sent to the *Custom Search* engine; a list of articles URLs is thus obtained
+- each article URL is checked for existence in the *Redis* database and, if necessary, *scraped* and stored in *plain text* in the *agent's* *knowledge base*
+- the input query is then sent once more to the agent and the *knowledge base* answers are retrieved and filtered, such that all resulting answers' source URLs are also present in the search results
+- if the list of answers is non-empty, the most relevant one is displayed on the *frontend*; otherwise the *fallback* message is displayed
 - this process can be repeated indefinitely
 
 ## Setup
