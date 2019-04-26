@@ -9,9 +9,15 @@ from util import *
 
 EXTRACTIVE_QA = [enums.Document.KnowledgeType.EXTRACTIVE_QA]
 _account = realpath('account.json')
-session = SessionsClient.from_service_account_json(_account)
-kb = KnowledgeBasesClient.from_service_account_json(_account)
-docs = DocumentsClient.from_service_account_json(_account)
+if os.path.isfile(_account):
+  session = SessionsClient.from_service_account_json(_account)
+  kb = KnowledgeBasesClient.from_service_account_json(_account)
+  docs = DocumentsClient.from_service_account_json(_account)
+else:
+  session = SessionsClient()
+  kb = KnowledgeBasesClient()
+  docs = DocumentsClient()
+  
 class Dialogflow:
   def __init__(self, session_id=uuid4(), language_code='en'):
     self.session_id = session_id

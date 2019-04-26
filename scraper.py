@@ -54,10 +54,16 @@ def parse(**kw):
   kw = { key: make_url(val) if key is 'url' else val }
   try:
     doc = pq(**kw)
-    doc.title, doc.site = (e.strip() for e in doc.children('head > title').text().split('|', 2))[:2]
+    _title = doc.children('head > title').text()
+    title = _title.split('|', 2)
+    doc.title, doc.site = (e.strip() for e in title[:2])
     return doc
   except HTTPError:
     pass
+  except ValueError:
+    print('[WARN] Could not determine site:', _title)
+    doc.title, doc.site = title.strip(), '<generic>'
+    return doc
 
 def _scrape(doc):
   content = doc.content()

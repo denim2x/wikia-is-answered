@@ -28,11 +28,11 @@ An engaging virtual assistant service for answering (almost) any question about 
 
 ## Setup
 ### Requirements
-- *\<project root>/account.json* with valid *GCP service account* data
+- (optional) *\<project root>/account.json* with valid *GCP service account* data
 - *\<project root>/config.yaml* with the following:
 ```yaml
 google_api:
-  key: <API key>
+  key: <API key>   # for Custom Search
 
 custom_search:
   cx: <Custom Search ID>
@@ -40,6 +40,7 @@ custom_search:
 redis:
   - host: <host>
     port: <port>
+    pass: <password>
   - ...
 ```
 

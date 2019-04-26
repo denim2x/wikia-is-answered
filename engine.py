@@ -17,6 +17,9 @@ ping = bytes(str(uuid1()), 'utf-8')
 for _redis in config['redis']:
   try:
     db = Database(host=_redis['host'], port=_redis['port'], password=_redis.get('pass'), db=0)
+    if db is None:
+      db_error = '<undefined>'
+      continue
     if ping == db.execute_command('ECHO', ping):
       db_error = None
       break
@@ -28,6 +31,7 @@ if db_error:
   print('[WARN] Redis connection failed: ', db_error)
   db = None
 else:
+  print('[INFO] Redis connection: ', db.connection_pool.connection_kwargs['host'])
   url_db = db.Hash('urls')
 
 dialogflow = Dialogflow()
@@ -73,7 +77,7 @@ async def respond(scope, info, matches, content):
       if doc.site not in kb_dict:
         print('[WARN] Missing knowledge base:', doc.site)
         continue
-        db[e['domain']] = dialogflow.init(doc.site).name
+        #db[e['domain']] = dialogflow.init(doc.site).name
       res = dialogflow.store(kb_dict[doc.site], doc.title, scrape(doc))
       if res is None:
         print('[WARN] Document creation failed:', e['url'])

@@ -27,6 +27,10 @@ class Search:
         if m and m[1] != '616':
           continue
         domain = e['displayLink']
+        site = domain.rstrip('.fandom.com')
+        m = re.match(r'^.+?\(.+?\)$', basename)
+        if m and site == 'batman':
+          continue
         res.append({
           'url': url,
           'domain': domain,

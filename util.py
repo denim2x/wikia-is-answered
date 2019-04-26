@@ -35,10 +35,13 @@ def realpath(path):
 with open(realpath('config.yaml')) as f:
   config = yaml.load(f, Loader=yaml.SafeLoader)
 
-with open(realpath('account.json')) as f:
-  account = json.load(f)
-
-project_id = account['project_id']
+try:
+  from google.appengine.api import app_identity
+  project_id = app_identity.get_application_id()
+except:
+  with open(realpath('account.json')) as f:
+    _account = json.load(f)
+    project_id = _account['project_id']
 
 def make_url(url, base=None):
   if base:
