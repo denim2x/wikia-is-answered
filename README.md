@@ -28,8 +28,8 @@ An engaging virtual assistant service for answering (almost) any question about 
 
 ## Setup
 ### Requirements
-- *<project root>/account.json* with valid *GCP service account* data
-- *<project root>/config.yaml* with the following:
+- *\<project root>/account.json* with valid *GCP service account* data
+- *\<project root>/config.yaml* with the following:
 ```yaml
 google_api:
   key: <API key>
@@ -45,4 +45,4 @@ redis:
 
 The Redis credentials are tried sequentially until a successful database connection is established.
 
-## MIT Lincense
+## MIT License
