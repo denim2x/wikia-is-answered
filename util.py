@@ -35,10 +35,8 @@ def realpath(path):
 with open(realpath('config.yaml')) as f:
   config = yaml.load(f, Loader=yaml.SafeLoader)
 
-try:
-  from google.appengine.api import app_identity
-  project_id = app_identity.get_application_id()
-except:
+project_id = os.getenv('GOOGLE_CLOUD_PROJECT', None)
+if not project_id:
   with open(realpath('account.json')) as f:
     _account = json.load(f)
     project_id = _account['project_id']

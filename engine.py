@@ -3,6 +3,7 @@ from math import inf
 
 from walrus import Database
 from bareasgi import text_reader
+from redis.exceptions import ResponseError
 
 from util import *
 from scraper import scrape, parse
@@ -87,7 +88,10 @@ async def respond(scope, info, matches, content):
       url_db[res.name] = e['url']
       docs.add(res.name)
 
-  db.bgsave()
+  try:
+    db.bgsave()
+  except ResponseError:
+    print("[WARN] Redis: command 'BGSAVE' failed")
 
   answers = dialogflow.get_answers(text, filter=lambda a: a.source in docs)
   if answers:
