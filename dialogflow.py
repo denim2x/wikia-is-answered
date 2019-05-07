@@ -1,11 +1,12 @@
+import os
 from uuid import uuid4
 
 from dialogflow_v2beta1 import SessionsClient, KnowledgeBasesClient, DocumentsClient
-from dialogflow_v2beta1 import types as dialogflow
-from dialogflow_v2beta1 import enums
+from dialogflow_v2beta1 import types, enums
 from google.api_core.exceptions import InvalidArgument, GoogleAPICallError
 
-from util import *
+from util import realpath
+from config import project_id
 
 EXTRACTIVE_QA = [enums.Document.KnowledgeType.EXTRACTIVE_QA]
 _account = realpath('account.json')
@@ -17,6 +18,30 @@ else:
   session = SessionsClient()
   kb = KnowledgeBasesClient()
   docs = DocumentsClient()
+
+class KnowledgeBase:
+  def __init__(self, id):
+    if isinstance(id, types.KnowledgeBase):
+      self._path = id.name
+      self.caption = id.display_name
+    else:
+      self._path = kb.knowledge_base_path(project_id, str(id))
+      self.caption = kb.get_knowledge_base(self._path).display_name
+
+  def __iter__(self):
+    yield from docs.list_documents(self._path)
+
+  def create(self, caption, text=None):
+    if text is None:
+      caption, text = caption
+    doc = types.Document(
+      display_name=caption, mime_type='text/plain',
+      knowledge_types=EXTRACTIVE_QA, content=text)
+    try:
+      return docs.create_document(self._path, doc).result()
+    except (InvalidArgument, GoogleAPICallError):
+      res = [d for d in self if d.display_name == caption]
+      return res[0] if res else None
   
 class Dialogflow:
   def __init__(self, session_id=uuid4(), language_code='en'):
@@ -26,27 +51,14 @@ class Dialogflow:
     self.language_code = language_code
     self.min_confidence = 0.8
 
-  def init(self, name):
-    return kb.create_knowledge_base(self._kb, dialogflow.KnowledgeBase(display_name=name))
-
-  def store(self, container, title, text):
-    doc = dialogflow.Document(
-      display_name=title, mime_type='text/plain', 
-      knowledge_types=EXTRACTIVE_QA, content=text)
-    try:
-      return docs.create_document(container, doc).result()
-    except (InvalidArgument, GoogleAPICallError):
-      res = [d for d in self.documents(container) if d.display_name == title]
-      return res[0] if res else None
-
   def __call__(self, text=None, event=None):
     language_code = self.language_code
     if text is not None:
-      text_input = dialogflow.TextInput(text=text, language_code=language_code)
-      query_input = dialogflow.QueryInput(text=text_input)
+      text_input = types.TextInput(text=text, language_code=language_code)
+      query_input = types.QueryInput(text=text_input)
     elif event is not None:
-      event_input = dialogflow.EventInput(name=event, language_code=language_code)
-      query_input = dialogflow.QueryInput(event=event_input)
+      event_input = types.EventInput(name=event, language_code=language_code)
+      query_input = types.QueryInput(event=event_input)
     else:
       return None
     return session.detect_intent(session=self._session, query_input=query_input)
@@ -72,11 +84,6 @@ class Dialogflow:
     res = self(event=name)
     return res if raw else res.query_result.fulfillment_text
 
-  def knowledge_bases(self):
-    return kb.list_knowledge_bases(self._kb)
-
-  def documents(self, container):
-    name = container
-    if not isinstance(container, str):
-      name = container.name
-    return docs.list_documents(name)
+  def __iter__(self):
+    for item in kb.list_knowledge_bases(self._kb):
+      yield KnowledgeBase(item)

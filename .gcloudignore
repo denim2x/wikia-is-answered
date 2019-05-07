@@ -13,3 +13,4 @@ package*.json
 /README*
 /LICENSE
 /account.json
+.idea

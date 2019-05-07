@@ -1,9 +1,12 @@
 uvicorn
 bareasgi
 bareasgi_static
-walrus
 pyquery
 google-api-python-client
 dialogflow
 PyYAML
 aiofiles
+redis
+rom
+pywsd
+numpy

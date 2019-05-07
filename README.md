@@ -28,7 +28,8 @@ An engaging virtual assistant service for answering (almost) any question about 
 
 ## Setup
 ### Requirements
-- (optional) *\<project root>/account.json* with valid *GCP service account* data
+- *Dialogflow* agent restored from `knowledge-agent.zip` (see *releases*):
+  - the *Fandom* knowledge base ('https://{0}.fandom.com/wiki/{1}') - *enabled*, identified by `Fandom KB ID` (the part after '.../editKnowledgeBase/');
 - *\<project root>/config.yaml* with the following:
 ```yaml
 google_api:
@@ -36,14 +37,18 @@ google_api:
 
 custom_search:
   cx: <Custom Search ID>
-  
+
+dialogflow:
+  fandom: <Fandom KB ID>
+
 redis:
   - host: <host>
     port: <port>
-    pass: <password>
+    pass: <password>  # optional
   - ...
 ```
+- (optional) *\<project root>/account.json* with valid *GCP service account* data.
 
-The Redis credentials are tried sequentially until a successful database connection is established.
+The Redis credentials are tried sequentially until the first successful database connection.
 
 ## MIT License

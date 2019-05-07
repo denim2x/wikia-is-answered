@@ -1,23 +1,25 @@
-import os, json, re
-from math import inf
+import re
 
-from walrus import Database
-from bareasgi import text_reader
-from redis.exceptions import ResponseError
+from _bareasgi import text_reader, json_response
+#from redis import StrictRedis
+#from redis.exceptions import ResponseError
+import rom
+from rom import util as _rom, session
 
-from util import *
-from scraper import scrape, parse
-from search import Search
-from dialogflow import Dialogflow
+from config import dialogflow as _dialogflow, redis
+from document import Document
+from search import search
+from dialogflow import Dialogflow, KnowledgeBase
 
-google_api = config['google_api']
-search = Search(google_api['key'], config['custom_search']['cx'])
 
 from uuid import uuid1
 ping = bytes(str(uuid1()), 'utf-8')
-for _redis in config['redis']:
+db_error = '<config>'
+for server in redis:
   try:
-    db = Database(host=_redis['host'], port=_redis['port'], password=_redis.get('pass'), db=0)
+    _rom.set_connection_settings(host=server['host'], port=server['port'], password=server.get('pass'), decode_responses=True)
+    db = _rom.get_connection()
+    #db = StrictRedis(host=server['host'], port=server['port'], password=server.get('pass'), db=0, decode_responses=True)
     if db is None:
       db_error = '<undefined>'
       continue
@@ -29,28 +31,56 @@ for _redis in config['redis']:
     pass
 
 if db_error:
-  print('[WARN] Redis connection failed: ', db_error)
+  print('[WARN] Redis connection failed:', db_error)
   db = None
 else:
-  print('[INFO] Redis connection: ', db.connection_pool.connection_kwargs['host'])
-  url_db = db.Hash('urls')
+  print('[INFO] Redis connection:', db.connection_pool.connection_kwargs['host'])
+
+class _Fragment(rom.Model):
+  path = rom.String(required=True, unique=True)
+  name = rom.String(required=True, unique=True)
+  document = rom.ManyToOne('_Document', required=True, on_delete='no action')
+
+class _Document(rom.Model):
+  name = rom.String(required=True, unique=True)
+  url = rom.String(unique=True)
+  caption = rom.String(required=True)
+  site = rom.String(default='<unknown>')
+  fragments = rom.OneToMany('_Fragment')
 
 dialogflow = Dialogflow()
+fandom = KnowledgeBase(_dialogflow['fandom'])
+_url = fandom.caption
 
-kb_dict = {}
-for kb in dialogflow.knowledge_bases():
-  kb_dict[kb.display_name] = kb.name
+# TODO: Delete database entries not present in Fandom KB
+docs = {}
+for fragment in fandom:
+  if not _Fragment.get_by(path=fragment.name):
+    name, heads = Document.parse_name(fragment.display_name)
+    docs.setdefault(name, set()).add(fragment)
 
+for name, fragments in docs.items():
+  _doc = _Document.get_by(name=name)
+  if not _doc:
+    doc = Document(_url, name)
+    _doc = _Document(name=name, url=doc.url, caption=doc.caption, site=doc.site)
+  for fragment in fragments:
+    _fragment = _Fragment(path=fragment.name, name=fragment.display_name, document=_doc)
+session.flush()
+
+sites = {}
 async def knowledge(scope, info, matches, content):
+  for _doc in _Document.query.all():
+    sites.setdefault(_doc.site, {}).setdefault(_doc.url, _doc.caption)
+
   res = []
-  for name, path in kb_dict.items():
-    docs = []
-    for doc in dialogflow.documents(path):
-      docs.append({ 'caption': doc.display_name, 'url': url_db.get(doc.name, b'').decode() or None })
-    res.append({ 'caption': name, 'documents': sorted(docs, key=lambda e: e['caption']) })
+  for site, docs in sites.items():
+    _docs = ({'caption': caption, 'url': url} for url, caption in docs.items())
+    res.append({ 'caption': site, 'documents': sorted(_docs, key=lambda e: e['caption']) })
+
   return json_response(sorted(res, key=lambda e: e['caption']))
 
-async def respond(scope, info, matches, content):
+async def message(scope, info, matches, content):
   text = re.sub(r'\s+', ' ', (await text_reader(content)).strip().lstrip('.').strip())
   if text == '':
     return json_response([dialogflow.event('WELCOME')])
@@ -63,37 +93,28 @@ async def respond(scope, info, matches, content):
   if not query:
     return 400
 
-  docs = str_set()
-  for e in search(query)[:10]:
-    if e['url'] in db:
-      path = db[e['url']]
-      docs.add(path)
-      url_db[path] = e['url']
-    else:
-      print('[INFO] Generating document:', e['url'])
-      doc = parse(url=e['url'])
-      if doc is None:
-        print('[WARN] URL request failed:', e['url'])
+  urls = set()
+  for url in search(query)[:10]:
+    if not _Document.get_by(url=str(url)):
+      doc = Document(url)
+      print('[INFO] Generating document:', doc.name)
+      if not doc:
+        print('[WARN] URL request failed:', doc.url)
         continue
-      if doc.site not in kb_dict:
-        print('[WARN] Missing knowledge base:', doc.site)
-        continue
-        #db[e['domain']] = dialogflow.init(doc.site).name
-      res = dialogflow.store(kb_dict[doc.site], doc.title, scrape(doc))
-      if res is None:
-        print('[WARN] Document creation failed:', e['url'])
-        continue
-      print('[INFO] Document created:', res.name)
-      db[e['url']] = res.name
-      url_db[res.name] = e['url']
-      docs.add(res.name)
+      _doc = _Document(name=doc.name, url=doc.url, caption=doc.caption, site=doc.site)
+      for fragment in doc:
+        res = fandom.create(fragment)
+        if res is None:
+          print('[WARN] Fragment creation failed:', fragment.caption)
+          continue
+        _fragment = _Fragment(path=res.name, name=fragment.caption, document=_doc)
+      print('[INFO] Document created:', doc.name)
 
-  try:
-    db.bgsave()
-  except ResponseError:
-    print("[WARN] Redis: command 'BGSAVE' failed")
+    urls.add(str(url))
 
-  answers = dialogflow.get_answers(text, filter=lambda a: a.source in docs)
+  session.flush()
+
+  answers = dialogflow.get_answers(text, filter=lambda a: _Fragment.get_by(path=a.source).document.url in urls)
   if answers:
     return json_response(answers)
 

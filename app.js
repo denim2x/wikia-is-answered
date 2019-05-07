@@ -46,10 +46,10 @@ function get_knowledge() {
 }
 
 function send_message(text='', cb) {
-  request.post('/respond').send(text).then(({ body }) => {
-    state.conversation.push({ text: body[0] });
+  request.post('/message').send(text).then(({ body }) => {
+    state.conversation.push(body);
   }, (e) => { 
-    _error('POST', '/respond', e);
+    _error('POST', '/message', e);
     if (cb) {
       cb();
     }
