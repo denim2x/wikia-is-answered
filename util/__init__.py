@@ -72,7 +72,7 @@ def before(other):
 #@attach(pq.fn)
 def _iter(this):
   if not this:
-    raise StopIteration
+    return this
   prev = _Text(this[0])
   yield pq(prev)
   for node in islice(this, 1, None):
