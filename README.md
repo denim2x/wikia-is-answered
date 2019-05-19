@@ -20,10 +20,11 @@ An engaging virtual assistant service for answering (almost) any question about 
 - the user is greeted with an introductory *message* from the *Dialogflow* agent
 - the user may submit a message (usually a question) using the input area
 - the server sends the question to the *Dialogflow* agent and obtains the initial list *answers* (excluding the *knowledge base*)
-- if there are no relevant answers in the list, the query is sent to the *Custom Search* engine; a list of articles URLs is thus obtained
-- each article URL is checked for existence in the *Redis* database and, if necessary, *scraped* and stored in *plain text* in the *agent's* *knowledge base*
-- the input query is then sent once more to the agent and the *knowledge base* answers are retrieved and filtered, such that all resulting answers' source URLs are also present in the search results
-- if the list of answers is non-empty, the most relevant one is displayed on the *frontend*; otherwise the *fallback* message is displayed
+- if there are no relevant answers in the list, the query is searched in the database; if found, its associated answer is shown to the user
+- otherwise the query is sent to the *Custom Search* engine; a list of articles URLs is thus obtained
+- each article URL is checked for existence in the database and, if necessary, *scraped* and stored in *plain text* in the *agent's* *knowledge base*
+- the input query is then sent once again to the agent and the *knowledge base* answers are retrieved
+- if available, the most relevant answer is shown; otherwise the *fallback* message is displayed
 - this process can be repeated indefinitely
 
 ## Setup
