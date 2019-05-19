@@ -96,6 +96,7 @@ def find_answer(query):
 def save_answer(query, answer):
   _save('_answers', query, answer)
   rom.bgsave()
+  return answer
 
 async def message(scope, info, matches, content):
   text = re.sub(r'\s+', ' ', (await text_reader(content)).strip().lstrip('.').strip())
@@ -156,6 +157,5 @@ async def message(scope, info, matches, content):
     return text_response(dialogflow.event('fallback'))
 
   answer = max(answers, key=lambda a: a.match_confidence * similarity(a.answer, query))
-  save_answer(query, answer.answer)
 
-  return text_response(answer)
+  return text_response(save_answer(query, answer.answer))
