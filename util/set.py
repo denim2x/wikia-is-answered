@@ -33,12 +33,16 @@ class Set(set):
 
   def update(self, src):
     if isinstance(src, bool):
-      self._bool = src
-      return True
+      if self._bool is None:
+        self._bool = src
+        return True
+      return False
     if _check(src):
       super().update(src)
       return True
     return False
+
+Set.__or__ = Set.union
 
 class OrderedSet:
   def __init__(self, src=None):
@@ -91,7 +95,7 @@ class OrderedSet:
     return bool(self._data)
 
   def __repr__(self):
-    return f"{{{', '.join(self)}}}"
+    return f"{{{', '.join(repr(e) for e in self)}}}"
 
   def __len__(self):
     return len(self._data)

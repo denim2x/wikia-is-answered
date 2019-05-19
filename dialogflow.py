@@ -4,6 +4,7 @@ from uuid import uuid4
 from dialogflow_v2beta1 import SessionsClient, KnowledgeBasesClient, DocumentsClient
 from dialogflow_v2beta1 import types, enums
 from google.api_core.exceptions import InvalidArgument, GoogleAPICallError
+from google.api_core.retry import Retry
 
 from util import realpath
 from config import project_id
@@ -50,6 +51,10 @@ class Dialogflow:
     self._kb = kb.project_path(project_id)
     self.language_code = language_code
     self.min_confidence = 0.8
+    self._retry = {
+      'retry': Retry(),
+      'timeout': 10
+    }
 
   def __call__(self, text=None, event=None):
     language_code = self.language_code
@@ -61,24 +66,20 @@ class Dialogflow:
       query_input = types.QueryInput(event=event_input)
     else:
       return None
-    return session.detect_intent(session=self._session, query_input=query_input)
+    return session.detect_intent(session=self._session, query_input=query_input, **self._retry)
 
-  def get_answers(self, text, raw=False, kb=True, sort_key=None, **kw):
+  def get_answers(self, text, kb=True):
     res = self(text=text)
-    filter_fn = kw.get('filter')
-    if hasattr(res.query_result, 'knowledge_answers'):
-      if not kb and res.alternative_query_results:
-        answer = res.alternative_query_results[0]
-        if answer.intent_detection_confidence >= self.min_confidence:
-          return [answer.fulfillment_text]
-        return None
-      answers = [a for a in res.query_result.knowledge_answers.answers]
-      if filter_fn:
-        answers = list(filter(filter_fn, answers))
-      if sort_key:
-        answers.sort(sort_key)
-      return answers if raw else [a.answer for a in answers]
-    return None
+    if not hasattr(res.query_result, 'knowledge_answers'):
+      return
+
+    if not kb and res.alternative_query_results:
+      answer = res.alternative_query_results[0]
+      if answer.action != 'input.unknown' and answer.intent_detection_confidence >= self.min_confidence:
+        return [answer.fulfillment_text]
+      return None
+
+    return res.query_result.knowledge_answers.answers
 
   def event(self, name, raw=False):
     res = self(event=name)

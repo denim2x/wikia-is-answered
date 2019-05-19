@@ -43,8 +43,8 @@ dialogflow:
 
 redis:
   - host: <host>
-    port: <port>
-    pass: <password>  # optional
+    port: <port>      # optional (default: 6379)
+    auth: <password>  # optional
   - ...
 ```
 - (optional) *\<project root>/account.json* with valid *GCP service account* data.

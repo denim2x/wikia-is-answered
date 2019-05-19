@@ -40,7 +40,10 @@
         <div class="Conversation-history">
           <pre class="Converstion-historyItem" rv-each-item="conversation" rv-class-user="item.is_user">{ item.text }</pre>
         </div>
-        <div placeholder="Your message here..." class="u-textbox Conversation-input" autofocus contenteditable rv-input="message ? empty" rv-class-error="error"></div>
+        <div class="Conversation-textbox" rv-class-error="error">
+          <div class="u-textbox Conversation-input" autofocus contenteditable rv-input="message ? empty"></div>
+          <span class="u-placeholder">Your message here...</span>
+        </div>
       </div>
     </main>
   </div>

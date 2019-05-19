@@ -46,13 +46,11 @@ function get_knowledge() {
 }
 
 function send_message(text='', cb) {
-  request.post('/message').send(text).then(({ body }) => {
-    state.conversation.push(body);
+  request.post('/message').send(text).then(({ text }) => {
+    state.conversation.push({ text });
   }, (e) => { 
     _error('POST', '/message', e);
-    if (cb) {
-      cb();
-    }
+    cb && cb();
   });
 }
 
@@ -110,20 +108,33 @@ rivets.binders['input'] = {
   },
 
   bind: function(el) {
-    $(el).on('input.rivets', this.publish);
+    this._empty = true;
+    $(el).on('input.rv-input', this.publish);
+    this._watch = () => {
+      el.innerHTML = '';
+      if (el.innerHTML == '') {
+        clearInterval(this._watcher);
+      }
+    };
   },
 
   unbind: function(el) {
-    $(el).off('input.rivets');
+    $(el).off('.rv-input');
+    clearInterval(this._watcher)
   },
 
   routine: function(el, value) {
     if (this.state != 'publish') {
+      clearInterval(this._watcher);
       el.innerText = value;
     }
-    state.error = false;  
+    state.error = false;
+    this._empty = value == '';
+    if (this._empty) {
+      this._watcher = setInterval(this._watch, 30);
+    }
     if (this.empty_class) {
-      $(el).toggleClass(this.empty_class, value == '');
+      $(el).toggleClass(this.empty_class, this._empty);
     }
   },
 

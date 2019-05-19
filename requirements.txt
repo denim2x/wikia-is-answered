@@ -1,12 +1,11 @@
-uvicorn
-bareasgi
+uvicorn==0.7.0
+bareasgi==1.0.3
 bareasgi_static
 pyquery
 google-api-python-client
 dialogflow
 PyYAML
-aiofiles
 redis
 rom
-pywsd
 numpy
+sortedcontainers

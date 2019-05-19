@@ -36,7 +36,8 @@ class _List:
       return default
 
 class Tuple(_List, tuple):
-  pass
+  def __repr__(self):
+    return tuple.__repr__(self)
 
 class List(_List, list):
   def __init__(self, src=None, banned=None, **kw):
@@ -45,6 +46,9 @@ class List(_List, list):
     self.__format = kw.get('format', '{item}')
     self._str = kw.get('str', ', ')
     self.extend(src)
+
+  def __repr__(self):
+    return list.__repr__(self)
 
   def _format(self, item):
     return self.__format.format(item=str(item))
