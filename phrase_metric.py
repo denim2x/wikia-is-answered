@@ -182,3 +182,11 @@ def similarity(a, b, scaling='inner', split=5):
 def distance(a, b):
   return 1 - similarity(a, b)
   
+
+while True:   # FIXME (workaround)
+  try:
+    _parse('sample text')
+    break
+  except (RuntimeError, ValueError):
+    pass
+    
