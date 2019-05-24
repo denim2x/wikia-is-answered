@@ -15,3 +15,6 @@ if not project_id:
 __all__ = (
   'google_api', 'custom_search', 'dialogflow', 'redis', 'project_id'
 )
+
+locals().setdefault('answers', 'keep')
+locals().setdefault('kb', 'keep')

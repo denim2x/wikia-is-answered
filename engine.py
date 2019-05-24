@@ -6,7 +6,7 @@ from _bareasgi import text_reader, text_response, json_response
 #from redis.exceptions import ResponseError
 import _rom as rom
 
-from config import dialogflow as _dialogflow, redis
+from config import dialogflow as _dialogflow, redis, answers as _answers, kb as _kb
 from document import Document
 from search import search
 from dialogflow import Dialogflow, KnowledgeBase
@@ -48,9 +48,15 @@ fandom = KnowledgeBase(_dialogflow['fandom'])
 _url = fandom.caption
 
 # TODO: Delete database entries not present in Fandom KB
+_keys = [e for e in db.keys() if e != '_answers']
+if _kb == 'blank' and _keys:
+  db.unlink(*_keys)
+  rom.bgsave()
+  print('[INFO] Redis: Dropped KB entries')
+  
 docs = defaultdict(list)
 for fragment in fandom:
-  if not _Fragment.get_by(path=fragment.name):
+  if not _Fragment.get_by(name=fragment.display_name):
     name, heads = Document.parse_name(fragment.display_name)
     docs[name].append(fragment)
 
@@ -63,6 +69,11 @@ for name, fragments in docs.items():
     _fragment = _Fragment(path=fragment.name, name=fragment.display_name, document=_doc)
 rom.session.flush()
 
+if _answers == 'blank' and db.hlen('_answers'):
+  db.hdel('_answers', *db.hkeys('_answers'))
+  rom.bgsave()
+  print('[INFO] Redis: Dropped answer entries')
+
 sites = defaultdict(dict)
 async def knowledge(scope, info, matches, content):
   for _doc in _Document.query.all():
@@ -74,7 +85,6 @@ async def knowledge(scope, info, matches, content):
     res.append({ 'caption': site, 'documents': sorted(_docs, key=lambda e: e['caption']) })
 
   return json_response(sorted(res, key=lambda e: e['caption']))
-
 
 from util import PriorityQueue
 from phrase_metric import similarity, validate
@@ -115,8 +125,9 @@ async def message(scope, info, matches, content):
   if answer:
     return text_response(answer)
     
-  fragments = PriorityQueue(5, lambda f, r: 1 - r)
-  for url in search(query)[:3]:
+  total = 4
+  fragments = PriorityQueue(total, lambda f, r: 1 - r)
+  for url in search(query)[:1]:
     doc = Document(url)
     if not doc:
       print('[WARN] URL request failed:', doc.url)
@@ -125,6 +136,9 @@ async def message(scope, info, matches, content):
     for fragment_name in doc:
       if _Fragment.get_by(name=fragment_name):
         print('[INFO] Found fragment:', fragment_name)
+        total -= 1
+        if total == 0:
+          break
         continue
 
       print('[INFO] Generating fragment:', fragment_name)
@@ -133,9 +147,9 @@ async def message(scope, info, matches, content):
         print('[INFO] Skipping empty fragment:', fragment_name)
         continue
 
-      fragments.add((doc, fragment_name, fragment), similarity(fragment, query))
+      fragments.add((doc, fragment_name, fragment), similarity(query, fragment))
 
-  for doc, name, fragment in fragments:
+  for doc, name, fragment in fragments[:total]:
     print('[INFO] Uploading fragment:', name)
     res = fandom.create(name, fragment)
     if res is None:
@@ -156,6 +170,6 @@ async def message(scope, info, matches, content):
   if not answers:
     return text_response(dialogflow.event('fallback'))
 
-  answer = max(answers, key=lambda a: a.match_confidence * similarity(a.answer, query))
+  answer = max(answers, key=lambda a: a.match_confidence * similarity(query, a.answer))
 
   return text_response(save_answer(query, answer.answer))

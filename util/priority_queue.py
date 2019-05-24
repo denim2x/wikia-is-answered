@@ -1,14 +1,7 @@
-#!/usr/bin/env python
-#
-# Based on the work of Pravin Paratey (April 15, 2011)
-# Joachim Hagege (June 18, 2014)  
-#
-# Code released under BSD license
-# 
 from __future__ import print_function
 from math import inf
 from collections import namedtuple
-from sortedcontainers import SortedList
+from sortedcontainers import SortedKeyList as SortedList
 
 
 Element = namedtuple('Element', ('value', 'rank'))
@@ -49,14 +42,16 @@ class PriorityQueue:
       yield value
       
   def __getitem__(self, index):
-    return self._data[index]
+    return list(self)[index]  # FIXME (performance)
     
   def size(self):
     return len(self._data)
 
+# Based on the work of Pravin Paratey (April 15, 2011)
+# Joachim Hagege (June 18, 2014)  
+#
+# Code released under BSD license
 class _PriorityQueue:
-    """ This class illustrates a PriorityQueue and its associated functions """
-
     def __init__(self, size=inf, key=None, default=0):
         self.heap = []
         self.k = size

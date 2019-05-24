@@ -1,10 +1,10 @@
 uvicorn==0.7.0
 bareasgi==1.0.3
 bareasgi_static
+PyYAML
 pyquery
 google-api-python-client
 dialogflow
-PyYAML
 redis
 rom
 numpy

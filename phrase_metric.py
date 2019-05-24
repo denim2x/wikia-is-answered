@@ -84,18 +84,19 @@ class _Chunk:
   def main(self):
     return self.type == 'NP'
 
-  def _related(self, other, type, scaling):
+  def _related(self, other, type, scaling, order):
     factor = self.factors[type]
     a, b = (e.nearest(type) for e in (self, other))
     if None in {a, b}:
       return Factor(0, 0)
-    return Factor(factor, a._similarity(b, scaling))
+    return Factor(factor, a._similarity(b, scaling, order))
 
-  def similarity(self, other, value=None, scaling=True):
-    if value is None:
-      return self._similarity(other, scaling)
-
-    related = [self._related(other, type, scaling) for type in self.factors]
+  def similarity(self, other, scaling=True, threshold=0, order='desc'):
+    value = self._similarity(other, scaling, order)
+    if value <= threshold:
+      return value
+      
+    related = [self._related(other, type, scaling, order) for type in self.factors]
     factor = 1 - sum(e.factor for e in related)
 
     return factor * value + sum(e.factor * e.value for e in related)
@@ -106,7 +107,7 @@ class _Chunk:
       self._lemma = ' '.join(e for e in self.lemmata if e)
     return self._lemma
 
-  def _similarity(self, other, scaling, default=0):
+  def _similarity(self, other, scaling, order, default=0):
     if self.type == other.type and _similar(self, other):
       return 1
     ratio = _ratio(self, other) if scaling else 1
@@ -156,25 +157,20 @@ def validate(self):   # FIXME (workaround)
   return False
   #return bool(_Text(self).noun_phrases)
 
-
-def similarity(a, b, scaling='inner', split=5):
+def similarity(a, b, scaling='inner', threshold=0.8, order='desc'):
   """Computes a non-negative score representing the amount of common information between a and b"""
   X, Y = (_Text(e) for e in (a, b))
   if casefold(X) == casefold(Y):
     return 1
   A, B = (e.noun_phrases for e in (X, Y))
+  if order in { 'asc', 'desc' }:
+    A, B = sorted((A, B), key=lambda e: len(e), reverse=order=='desc')
   data = []
   scaling = 'total' if scaling is True else scaling
-  inner = scaling in { 'inner', 'total' }
   for a in A:
-    S = sorted(((a.similarity(b, scaling=inner), b) for b in B), key=lambda e: e[0], reverse=True)
-    m = max((a.similarity(p, s, scaling=inner) for (s, p) in S[:split]), default=0)
-    _len = len(S)
-    if _len > split:
-      f = max([len(S[split:]) / _len, 0.3])
-      data.append(m * (1 - f) + S[split][0] * f)
-    else:
-      data.append(m)
+    #m = max((a.similarity(b, scaling, threshold, order) for b in B), default=0)
+    S = sorted((a.similarity(b, scaling, threshold, order) for b in B), reverse=True)
+    data.append(_mean(S, 0.6))
 
   ratio = _ratio(A, B) if scaling in { 'outer', 'total' } else 1
   return _mean(data) * ratio

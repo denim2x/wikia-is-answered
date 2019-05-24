@@ -52,4 +52,9 @@ redis:
 
 The Redis credentials are tried sequentially until the first successful database connection.
 
+## Notes
+
+There's a significant delay during answer retrieval - caused by latencies that occur during scraping and uploading new documents into the *knowledge base*.
+There's room for improvement in that area.
+
 ## MIT License
